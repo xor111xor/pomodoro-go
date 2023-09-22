@@ -132,17 +132,17 @@ func NewInterval(config *IntervalConfig) (Interval, error) {
 	return i, nil
 }
 
-// Get exist or create new inteval
+// Return running, stoped or new interval
 func GetInterval(config *IntervalConfig) (Interval, error) {
 	i := Interval{}
 
 	i, err := config.Repo.Last()
-	if err != nil && err == ErrNoIntervals {
+	if err != nil && err != ErrNoIntervals {
 		return i, err
 	}
 
 	if err == nil && i.State != StateCanceled && i.State != StateDone {
-		return i, err
+		return i, nil
 	}
 
 	return NewInterval(config)
@@ -188,9 +188,7 @@ func tick(ctx context.Context, config *IntervalConfig, start, periodic, end Call
 			}
 			i.State = StateDone
 			end(i)
-			if err := config.Repo.Update(i); err != nil {
-				return err
-			}
+			return config.Repo.Update(i)
 		case <-ctx.Done():
 			i, err := config.Repo.ByID(id)
 			if err != nil {
