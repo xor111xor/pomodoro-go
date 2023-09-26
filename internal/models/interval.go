@@ -196,9 +196,7 @@ func tick(ctx context.Context, config *IntervalConfig, start, periodic, end Call
 			}
 
 			i.State = StateCanceled
-			if err := config.Repo.Update(i); err != nil {
-				return err
-			}
+			return config.Repo.Update(i)
 		}
 	}
 }
@@ -223,7 +221,7 @@ func (i Interval) Start(ctx context.Context, config *IntervalConfig, start, peri
 	}
 }
 
-func (i Interval) Stop(config *IntervalConfig) error {
+func (i Interval) Pause(config *IntervalConfig) error {
 	if i.State != StateRunning {
 		return ErrIntervalNotRunning
 	}

@@ -2,6 +2,7 @@ package models_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -135,6 +136,95 @@ func TestGetInterval(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestPause(t *testing.T) {
+	const duration = 2 * time.Second
+
+	repo, cleanup := getRepo(t)
+	defer cleanup()
+
+	config, err := models.NewConfig(repo, duration, duration, duration)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name        string
+		start       bool
+		expState    int
+		expDuration time.Duration
+	}{
+		{
+			name:        "NotStarted",
+			start:       false,
+			expState:    models.StateNotStarted,
+			expDuration: 0,
+		},
+		{
+			name:        "Paused",
+			start:       true,
+			expState:    models.StatePaused,
+			expDuration: duration / 2,
+		},
+	}
+	expError := models.ErrIntervalNotRunning
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			i, err := models.GetInterval(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			start := func(models.Interval) {}
+			end := func(models.Interval) {
+				t.Errorf("End callback should not be executed")
+			}
+			periodic := func(i models.Interval) {
+				if err := i.Pause(config); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if tc.start {
+				if err := i.Start(ctx, config, start, periodic, end); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			i, err = models.GetInterval(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = i.Pause(config)
+			if err != nil {
+				if !errors.Is(err, expError) {
+					t.Fatalf("Expected error %q got %q", expError, err)
+				}
+			}
+			if err == nil {
+				t.Fatalf("Expected error %q, got nil", expError)
+			}
+
+			i, err = repo.ByID(i.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if i.State != tc.expState {
+				t.Errorf("Expected state %q, got %q.\n", tc.expState, i.State)
+			}
+
+			if i.TimeActual != tc.expDuration {
+				t.Errorf("Expected duration %q, got %q.\n", tc.expDuration, i.TimeActual)
+			}
+			cancel()
+		})
 	}
 
 }
