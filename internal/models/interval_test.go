@@ -228,3 +228,93 @@ func TestPause(t *testing.T) {
 	}
 
 }
+
+func TestStart(t *testing.T) {
+	const duration = 2 * time.Second
+
+	repo, cleanup := getRepo(t)
+	defer cleanup()
+
+	config, err := models.NewConfig(repo, duration, duration, duration)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		name        string
+		cancel      bool
+		expState    int
+		expDuration time.Duration
+	}{
+		{
+			name:        "Finish",
+			cancel:      false,
+			expState:    models.StateDone,
+			expDuration: duration,
+		},
+		{
+			name:        "Cancel",
+			cancel:      true,
+			expState:    models.StateCanceled,
+			expDuration: duration / 2,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			i, err := models.GetInterval(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			start := func(i models.Interval) {
+				if i.State != models.StateRunning {
+					t.Errorf("Expected state %d, got %d", models.StateRunning, tc.expState)
+				}
+
+				if i.TimeActual >= i.TimePlanning {
+					t.Errorf("Expected ActualDuration %q, less than Planned %q.\n", i.TimeActual, i.TimePlanning)
+				}
+			}
+
+			end := func(i models.Interval) {
+				if i.State != tc.expState {
+					t.Errorf("Expected state %d, got %d", i.State, tc.expState)
+				}
+				if tc.cancel {
+					t.Error("End callback should not be executed")
+				}
+			}
+
+			periodic := func(i models.Interval) {
+				if i.State != models.StateRunning {
+					t.Fatalf("Expected state %q, got %q", models.StateRunning, i.State)
+				}
+
+				if tc.cancel {
+					cancel()
+				}
+			}
+
+			if err := i.Start(ctx, config, start, periodic, end); err != nil {
+				t.Fatal(err)
+			}
+
+			i, err = repo.ByID(i.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if tc.expState != i.State {
+				t.Errorf("Expected state %q, got %q", tc.expState, i.State)
+			}
+			if tc.expDuration != i.TimeActual {
+				t.Errorf("Expected duration %d, got %d", tc.expDuration, i.TimeActual)
+			}
+
+			cancel()
+		})
+	}
+}
