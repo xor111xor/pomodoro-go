@@ -16,14 +16,14 @@ type buttons struct {
 
 func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, redrawCh chan<- bool, errorCh chan<- error) (*buttons, error) {
 	startInterval := func() {
-		i, err := models.NewInterval(config)
+		i, err := models.GetInterval(config)
 		errorCh <- err
 		start := func(i models.Interval) {
 			message := "Take a brake"
 			if i.Category == models.PomodoCategory {
 				message = "Focus on your task"
 			}
-			w.update([]int{}, i.Category, message, "", redrawCh)
+			w.update([]int{}, message, "", i.Category, redrawCh)
 		}
 		end := func(models.Interval) {
 			w.update([]int{}, "", "Nothing running", "", redrawCh)
@@ -31,15 +31,16 @@ func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, 
 		periodic := func(i models.Interval) {
 			w.update(
 				[]int{int(i.TimeActual), int(i.TimePlanning)},
-				"", "",
+				"",
 				fmt.Sprint(i.TimePlanning-i.TimeActual),
+				"",
 				redrawCh,
 			)
 		}
 		errorCh <- i.Start(ctx, config, start, periodic, end)
 	}
 	pauseInterval := func() {
-		i, err := models.NewInterval(config)
+		i, err := models.GetInterval(config)
 		if err != nil {
 			errorCh <- err
 		}
@@ -51,7 +52,7 @@ func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, 
 			errorCh <- err
 			return
 		}
-		w.update([]int{}, "", "Paused, press start to continue", "", redrawCh)
+		w.update([]int{}, "Paused, press start to continue...", "", "", redrawCh)
 	}
 
 	btStart, err := button.New("(s)tart", func() error {
