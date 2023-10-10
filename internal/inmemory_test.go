@@ -1,4 +1,6 @@
-package repository_test
+//go:build inmemory
+
+package internal_test
 
 import (
 	"github.com/xor111xor/pomodoro-go/internal/models"

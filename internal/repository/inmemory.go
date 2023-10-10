@@ -1,3 +1,5 @@
+//go:build inmemory
+
 package repository
 
 import (
@@ -19,11 +21,11 @@ func NewInMemoryRepo() *InMemoryRepo {
 	}
 }
 
-func (in *InMemoryRepo) Create(i models.Interval) (int, error) {
+func (in *InMemoryRepo) Create(i models.Interval) (int64, error) {
 	in.Lock()
 	defer in.Unlock()
 
-	i.ID = len(in.intervals) + 1
+	i.ID = int64(len(in.intervals) + 1)
 
 	in.intervals = append(in.intervals, i)
 	return i.ID, nil
@@ -54,7 +56,7 @@ func (in *InMemoryRepo) Last() (models.Interval, error) {
 	return last, nil
 }
 
-func (in *InMemoryRepo) ByID(id int) (models.Interval, error) {
+func (in *InMemoryRepo) ByID(id int64) (models.Interval, error) {
 	in.RLock()
 	defer in.RUnlock()
 
