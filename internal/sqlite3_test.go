@@ -3,9 +3,7 @@
 package internal_test
 
 import (
-	"fmt"
-	"io/ioutil"
-	// "os"
+	"os"
 	"testing"
 
 	"github.com/xor111xor/pomodoro-go/internal/models"
@@ -14,7 +12,7 @@ import (
 
 func getRepo(t *testing.T) (models.Repository, func()) {
 	t.Helper()
-	tf, err := ioutil.TempFile("", "pomo")
+	tf, err := os.CreateTemp("/tmp", "pomo-")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,8 +23,7 @@ func getRepo(t *testing.T) (models.Repository, func()) {
 	}
 
 	return dbRepo, func() {
-		// os.Remove(tf.Name())
-		fmt.Println("done")
+		os.Remove(tf.Name())
 	}
 
 }
