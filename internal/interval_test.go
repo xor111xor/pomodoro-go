@@ -1,4 +1,4 @@
-package models_test
+package internal_test
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/xor111xor/pomodoro-go/internal/models"
-	"github.com/xor111xor/pomodoro-go/internal/repository"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -73,10 +72,6 @@ func TestNewConfig(t *testing.T) {
 			}
 		})
 	}
-}
-func getRepo(t *testing.T) (models.Repository, func()) {
-	t.Helper()
-	return repository.NewInMemoryRepo(), func() {}
 }
 
 func TestGetInterval(t *testing.T) {

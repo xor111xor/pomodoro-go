@@ -8,8 +8,8 @@ import (
 
 const (
 	PomodoCategory     = "Pomodoro"
-	LongBreakCategory  = "Long"
-	ShortBreakCategory = "Short"
+	LongBreakCategory  = "LongBreak"
+	ShortBreakCategory = "ShortBreak"
 )
 
 const (
@@ -29,7 +29,7 @@ var (
 )
 
 type Interval struct {
-	ID           int
+	ID           int64
 	Category     string
 	State        int
 	TimeStart    time.Time
@@ -38,11 +38,11 @@ type Interval struct {
 }
 
 type Repository interface {
-	Create(i Interval) (int, error)
+	Create(i Interval) (int64, error)
 	Update(i Interval) error
 	Last() (Interval, error)
-	ByID(int) (Interval, error)
-	Breaks(int) ([]Interval, error)
+	ByID(int64) (Interval, error)
+	Breaks(n int) ([]Interval, error)
 }
 
 type IntervalConfig struct {
@@ -151,7 +151,7 @@ func GetInterval(config *IntervalConfig) (Interval, error) {
 type Callback func(Interval)
 
 // Performing action for interval
-func tick(ctx context.Context, config *IntervalConfig, start, periodic, end Callback, id int) error {
+func tick(ctx context.Context, config *IntervalConfig, start, periodic, end Callback, id int64) error {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
