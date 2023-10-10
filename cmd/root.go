@@ -60,10 +60,12 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringP("db", "d", "pomo.db", "Database for pomo")
 	rootCmd.Flags().DurationP("pomo", "p", 25*time.Minute, "Pomodoro duration")
 	rootCmd.Flags().DurationP("long", "l", 15*time.Minute, "Long break duration")
 	rootCmd.Flags().DurationP("short", "s", 5*time.Minute, "Short break duration")
 
+	viper.BindPFlag("db", rootCmd.Flags().Lookup("db"))
 	viper.BindPFlag("pomo", rootCmd.Flags().Lookup("pomo"))
 	viper.BindPFlag("long", rootCmd.Flags().Lookup("long"))
 	viper.BindPFlag("short", rootCmd.Flags().Lookup("short"))

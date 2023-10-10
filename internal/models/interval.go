@@ -43,6 +43,7 @@ type Repository interface {
 	Last() (Interval, error)
 	ByID(int64) (Interval, error)
 	Breaks(n int) ([]Interval, error)
+	// CategorySummary(day time.Time, filter string)(time.Duration, error)
 }
 
 type IntervalConfig struct {
@@ -82,6 +83,11 @@ func NextCategory(r Repository) (string, error) {
 	}
 	if err != nil {
 		return "", err
+	}
+
+	// Features
+	if last.State == StateCanceled {
+		return PomodoCategory, nil
 	}
 
 	if last.Category == LongBreakCategory || last.Category == ShortBreakCategory {
