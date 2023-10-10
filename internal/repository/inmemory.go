@@ -1,10 +1,12 @@
-//go:build inmemory
+// go:build inmemory
 
 package repository
 
 import (
 	"fmt"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/xor111xor/pomodoro-go/internal/models"
 )
@@ -81,4 +83,22 @@ func (in *InMemoryRepo) Breaks(count int) ([]models.Interval, error) {
 		}
 	}
 	return breaks, nil
+}
+func (in *InMemoryRepo) CategorySummary(day time.Time, filter string) (time.Duration, error) {
+	// Return daily summary
+	in.RLock()
+	defer in.RUnlock()
+
+	var d time.Duration
+	filter = strings.Trim(filter, "%")
+
+	for _, i := range in.intervals {
+		if i.TimeStart.Year() == day.Year() &&
+			i.TimeStart.YearDay() == day.YearDay() {
+			if strings.Contains(i.Category, filter) {
+				d += i.TimeActual
+			}
+		}
+	}
+	return d, nil
 }
