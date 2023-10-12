@@ -29,13 +29,14 @@ func newSummary(ctx context.Context, config *models.IntervalConfig,
 	s := &summary{}
 	var err error
 
-	s.updateWeekly = make(chan bool)
+	s.updateDaily = make(chan bool)
 	s.updateWeekly = make(chan bool)
 
 	s.bcDay, err = newBarChart(ctx, config, s.updateDaily, errorCh)
 	if err != nil {
 		return nil, err
 	}
+
 	s.lcWeekly, err = newLineChart(ctx, config, s.updateWeekly, errorCh)
 	if err != nil {
 		return nil, err
@@ -99,6 +100,8 @@ func newBarChart(ctx context.Context, config *models.IntervalConfig,
 
 func newLineChart(ctx context.Context, config *models.IntervalConfig,
 	update <-chan bool, errorCh chan<- error) (*linechart.LineChart, error) {
+
+	// Initialize LineChart
 	lc, err := linechart.New(
 		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
 		linechart.YLabelCellOpts(cell.FgColor(cell.ColorBlue)),
@@ -117,6 +120,7 @@ func newLineChart(ctx context.Context, config *models.IntervalConfig,
 		if err != nil {
 			return err
 		}
+
 		err = lc.Series(ws[0].Name, ws[0].Values,
 			linechart.SeriesCellOpts(cell.FgColor(cell.ColorBlue)),
 			linechart.SeriesXLabels(ws[0].Labels),
@@ -126,10 +130,11 @@ func newLineChart(ctx context.Context, config *models.IntervalConfig,
 		}
 
 		return lc.Series(ws[1].Name, ws[1].Values,
-			linechart.SeriesCellOpts(cell.FgColor(cell.ColorBlue)),
+			linechart.SeriesCellOpts(cell.FgColor(cell.ColorYellow)),
 			linechart.SeriesXLabels(ws[1].Labels),
 		)
 	}
+
 	go func() {
 		for {
 			select {
@@ -141,8 +146,10 @@ func newLineChart(ctx context.Context, config *models.IntervalConfig,
 			}
 		}
 	}()
+
 	if err := updateWidget(); err != nil {
 		return nil, err
 	}
+
 	return lc, nil
 }
