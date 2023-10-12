@@ -43,7 +43,7 @@ type Repository interface {
 	Last() (Interval, error)
 	ByID(int64) (Interval, error)
 	Breaks(n int) ([]Interval, error)
-	// CategorySummary(day time.Time, filter string)(time.Duration, error)
+	CategorySummary(day time.Time, filter string) (time.Duration, error)
 }
 
 type IntervalConfig struct {

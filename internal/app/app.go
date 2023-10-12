@@ -35,7 +35,12 @@ func New(config *models.IntervalConfig) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err := newButtons(ctx, config, w, redrawCh, errorCh)
+	s, err := newSummary(ctx, config, redrawCh, errorCh)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := newButtons(ctx, config, w, s, redrawCh, errorCh)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +48,7 @@ func New(config *models.IntervalConfig) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	c, err := newGrid(b, w, term)
+	c, err := newGrid(b, w, s, term)
 	if err != nil {
 		return nil, err
 	}
