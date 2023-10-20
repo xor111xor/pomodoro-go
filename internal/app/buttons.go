@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ebitengine/oto/v3"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/widgets/button"
 	"github.com/xor111xor/pomodoro-go/internal/models"
@@ -14,7 +15,7 @@ type buttons struct {
 	btPause *button.Button
 }
 
-func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, s *summary, redrawCh chan<- bool, errorCh chan<- error) (*buttons, error) {
+func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, s *summary, audioCtx *oto.Context, redrawCh chan<- bool, errorCh chan<- error) (*buttons, error) {
 	startInterval := func() {
 		i, err := models.GetInterval(config)
 		errorCh <- err
@@ -28,6 +29,7 @@ func newButtons(ctx context.Context, config *models.IntervalConfig, w *widgets, 
 		end := func(models.Interval) {
 			w.update([]int{}, "", "Nothing running", "", redrawCh)
 			s.update(redrawCh)
+			go SoundPlay(audioCtx)
 		}
 		periodic := func(i models.Interval) {
 			w.update(
