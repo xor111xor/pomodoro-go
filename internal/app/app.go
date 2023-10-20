@@ -31,7 +31,7 @@ func New(config *models.IntervalConfig) (*App, error) {
 	redrawCh := make(chan bool)
 	errorCh := make(chan error)
 
-	audioCTX := InitSound()
+	audioCtx := InitSound()
 
 	w, err := newWidgets(ctx, errorCh)
 	if err != nil {
@@ -42,7 +42,7 @@ func New(config *models.IntervalConfig) (*App, error) {
 		return nil, err
 	}
 
-	b, err := newButtons(ctx, config, w, s, audioCTX, redrawCh, errorCh)
+	b, err := newButtons(ctx, config, w, s, audioCtx, redrawCh, errorCh)
 	if err != nil {
 		return nil, err
 	}
