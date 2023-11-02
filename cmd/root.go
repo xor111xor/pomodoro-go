@@ -55,28 +55,9 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
+	cobra.OnInitialize(initConfig)
+
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/pomodoro-go/pomodoro-go.yaml)")
-
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-
-		// Set the file name of the configurations file
-		viper.SetConfigName("pomodoro-go")
-
-		// Set the path to look for the configurations file
-		viper.AddConfigPath("$HOME/.config/pomodoro-go/")
-
-	}
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-
-	// rootCmd.PersistentFlags().StringP("db", "d", "", "loaded from config")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -89,6 +70,23 @@ func init() {
 	viper.BindPFlag("pomo", rootCmd.Flags().Lookup("pomo"))
 	viper.BindPFlag("long", rootCmd.Flags().Lookup("long"))
 	viper.BindPFlag("short", rootCmd.Flags().Lookup("short"))
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.SetConfigType("yaml")
+		viper.SetConfigName("pomodoro-go")
+		viper.AddConfigPath("$HOME/.config/pomodoro-go/")
+	}
+
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
 }
 
 func rootAction(out io.Writer, config *models.IntervalConfig) error {
