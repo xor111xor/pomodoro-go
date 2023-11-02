@@ -4,6 +4,7 @@ Copyright © 2023 xor111xor
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -54,12 +55,31 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/pomodoro-go/pomodoro-go.yaml)")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pomodoro-go.yaml)")
+	if cfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFile)
+	} else {
+
+		// Set the file name of the configurations file
+		viper.SetConfigName("pomodoro-go")
+
+		// Set the path to look for the configurations file
+		viper.AddConfigPath("$HOME/.config/pomodoro-go/")
+
+	}
+
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+
+	// rootCmd.PersistentFlags().StringP("db", "d", "", "loaded from config")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Flags().StringP("db", "d", "pomo.db", "Database for pomo")
 	rootCmd.Flags().DurationP("pomo", "p", 25*time.Minute, "Pomodoro duration")
 	rootCmd.Flags().DurationP("long", "l", 15*time.Minute, "Long break duration")
